@@ -3,10 +3,7 @@ package ru.selsup.testtask;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CrptApi {
@@ -33,7 +30,6 @@ public class CrptApi {
     public void createDoc(Document document, String sign) throws InterruptedException {
         synchronized (this) {
             try {
-
                 sem.acquire();
 
                 if (count.get() == 0) {
@@ -52,6 +48,7 @@ public class CrptApi {
 
     //work with documents (save etc.)
     private void docProcessing(Document document, String sign) {
+
     }
 
     //set timer and reset count (requestLimit)
@@ -100,19 +97,19 @@ public class CrptApi {
         public String reg_number;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         //если я правильно понял задание, то контроллер и рест слои не нужны.
         //проверял на этом тесте, меняя реквест лимит, количество тредов и счетчик (:
-        CrptApi test = new CrptApi(TimeUnit.MINUTES, 10);
-        ExecutorService executorService = Executors.newFixedThreadPool(20);
-        for (int i = 0; i < 20; i++) {
-            executorService.execute(() -> {
+        CrptApi test = new CrptApi(TimeUnit.SECONDS, 10);
+        ExecutorService executorService = Executors.newFixedThreadPool(30);
+        for (int i = 0; i < 30; i++) {
+            executorService.submit(() -> {
                 try {
                     test.createDoc(new Document(), "1");
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-            });
+            }).get();
         }
     }
 
